@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataAccess\EmployeeModifier.cs" />
+    <Compile Include="DataAccess\EmployeeQuery.cs" />
     <Compile Include="DataAccess\InvoiceQuery.cs" />
-    <Compile Include="DataAccess\Models\Customer.cs" />
+    <Compile Include="DataAccess\Models\Employee.cs" />
     <Compile Include="DataAccess\Models\Invoice.cs" />
     <Compile Include="DataAccess\Models\InvoiceBySalesRep.cs" />
     <Compile Include="DataAccess\Models\SalesAgent.cs" />

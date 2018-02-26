@@ -14,18 +14,18 @@ namespace ChinookConsole.DataAccess
 
         readonly string _connectionString = ConfigurationManager.ConnectionStrings["Chinook"].ConnectionString;
 
-        public List<InvoiceBySalesRep> GetInvoiceBySalesAgent(int agentId)
+        public List<InvoiceBySalesRep> GetInvoiceBySalesAgent(string agentId)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
 
                 var cmd = connection.CreateCommand();
 
-                cmd.CommandText = @"select e.FirstName + ' ' + e.LastName AgentName, i.InvoiceId
-                                    from Customer c
-                                    inner join Invoice i on c.CustomerId = i.CustomerId
-                                    where exists (select e.FirstName + ' ' + e.LastName AgentName from Employee
-                                                  where EmployeeId like @AgentId + '%' and EmployeeId = c.SupportRepId)";
+                cmd.CommandText = @"select i.InvoiceId InvoiceId, e.FirstName + ' ' + e.LastName AgentName
+                                    from Invoice i
+                                    inner join Customer c on i.CustomerId = c.CustomerId
+                                    inner join Employee e on c.SupportRepId = e.EmployeeId
+                                    where e.EmployeeId = @AgentId (select e.FirstName + ' ' + e.LastName from Employee e)";
 
                 var AgentIdParam = new SqlParameter("@AgentId", System.Data.SqlDbType.VarChar);
                 AgentIdParam.Value = agentId;
@@ -34,29 +34,65 @@ namespace ChinookConsole.DataAccess
                 connection.Open();
                 var reader = cmd.ExecuteReader();
 
-
                 var invoices = new List<InvoiceBySalesRep>();
 
                 while (reader.Read())
                 {
                     var invoice = new InvoiceBySalesRep
                     {
-
-                        //Takes in the column (0 would be first common)
                         AgentName = reader["AgentName"].ToString(),
                         InvoiceId = int.Parse(reader["InvoiceId"].ToString()),
-
                     };
 
                     invoices.Add(invoice);
-
                 }
 
                 return invoices;
 
             }
         }
-        
+
+        public List<Invoice> GetAllInvoices()
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+
+                var cmd = connection.CreateCommand();
+
+                cmd.CommandText = @"select InvoiceCustomer.Total, InvoiceCustomer.CustomerName, InvoiceCustomer.CustomerCountry, Agent.SalesAgent
+	                                from 
+	                                    (select i.Total Total, c.FirstName + ' ' + c.LastName CustomerName, c.Country CustomerCountry, c.SupportRepId AgentId 
+		                                from Invoice i
+		                                inner join Customer c on i.CustomerId = c.CustomerId) InvoiceCustomer
+	                                join 
+	                                    (select e.FirstName + ' ' + e.LastName SalesAgent, e.EmployeeId EmployeeId
+	                                    from Employee e
+	                                    inner join Customer c on e.EmployeeId = c.SupportRepId) Agent 
+	                                on Agent.EmployeeId = InvoiceCustomer.AgentId";
+
+                connection.Open();
+                var reader = cmd.ExecuteReader();
+
+                var allInvoices = new List<Invoice>();
+
+                while (reader.Read())
+                {
+                    var invoice = new Invoice
+                    {
+                        Total = double.Parse(reader["Total"].ToString()),
+                        CustomerName = reader["CustomerName"].ToString(),
+                        CustomerCountry = reader["CustomerCountry"].ToString(),
+                        SalesAgent = reader["SalesAgent"].ToString(),
+                    };
+
+                    allInvoices.Add(invoice);
+                }
+
+                return allInvoices;
+
+            }
+        }
+
 
     }
 }
