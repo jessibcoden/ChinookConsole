@@ -11,7 +11,8 @@ namespace ChinookConsole
     class Program
     {
         static SalesAgent _selectedAgent;
-        static Employee _selectedEmployee;
+        static string _customerId;
+        static string _billingAddress;
         static string _selectedEmployeeId;
         static string _updatedEmployeeFirstName;
         static string _updatedEmployeeLastName;
@@ -53,15 +54,18 @@ namespace ChinookConsole
                         break;
 
                     case '2': //INSERT a new invoice with parameters for customerid and billing address
-
+                        _customerId = SelectCustomerId();
+                        var custId = int.Parse(_customerId);
+                        _billingAddress = GrabBillingAddress();
+                        var createInvoice = CreateNewInvoice(custId, _billingAddress);
                         break;
 
                     case '3'://UPDATE an Employee's name with a parameter for Employee Id and new name
                         _selectedEmployeeId = SelectEmployeeId();
-                        _updatedEmployeeFirstName = UpdatedFirstName(_selectedEmployeeId);
-                        var id = int.Parse(_selectedEmployeeId);
-                        _updatedEmployeeLastName = UpdatedLastName(_selectedEmployeeId);
-                        var updateEmployeeName = UpdateEmployeeName(id, _updatedEmployeeFirstName, _updatedEmployeeLastName);
+                        var empId = int.Parse(_selectedEmployeeId);
+                        _updatedEmployeeFirstName = UpdatedFirstName(empId);
+                        _updatedEmployeeLastName = UpdatedLastName(empId);
+                        var updateEmployeeName = UpdateEmployeeName(empId, _updatedEmployeeFirstName, _updatedEmployeeLastName);
                         break;
 
                     default:
@@ -156,7 +160,6 @@ namespace ChinookConsole
             viewAllInvoices.AddMenuText("Agent Results:");
             foreach (var invoice in invoices)
             {
-                //InvoiceList.Add(invoice);
                 viewAllInvoices.AddMenuText($"{invoice.Total}  {invoice.CustomerName}  {invoice.CustomerCountry}  {invoice.SalesAgent}");
             };
             viewAllInvoices.AddMenuText("Press 0 to go BACK.");
@@ -168,50 +171,97 @@ namespace ChinookConsole
 
         }
 
+//ADD NEW INVOICE
+        static string SelectCustomerId()
+        {
+            var selectCustomerMenu = new View();
 
+            selectCustomerMenu.AddMenuText("Enter Customer ID:");
 
+            Console.Write(selectCustomerMenu.GetFullMenu());
+            _customerId = Console.ReadLine();
 
+            return _customerId;
+        }
+
+        static string GrabBillingAddress()
+        {
+            var getBillingAddMenu = new View();
+
+            getBillingAddMenu.AddMenuText("Enter Billing Address:");
+
+            Console.Write(getBillingAddMenu.GetFullMenu());
+            _billingAddress = Console.ReadLine();
+
+            return _customerId;
+        }
+
+        static ConsoleKeyInfo CreateNewInvoice(int customerId, string billingAddress)
+        {
+            var InvoiceList = new List<Invoice>();
+
+            var newInvoiceQuery = new InvoiceNew();
+            var addNewInvoice = newInvoiceQuery.AddNewInvoice(customerId, billingAddress);
+
+            var invoiceQuery = new InvoiceQuery();
+            var invoices = invoiceQuery.GetInvoiceByCustomer(customerId);
+
+            var invoicesByCustView = new View();
+            invoicesByCustView.AddMenuText($"All invoices for this customer:");
+            foreach (var invoice in invoices)
+            {
+                invoicesByCustView.AddMenuText($"{invoice.InvoiceId} {invoice.CustomerName} {invoice.SalesAgent} {invoice.Total} ");
+            };
+
+            invoicesByCustView.AddMenuText("Press 0 to go BACK.");
+
+            Console.Write(invoicesByCustView.GetFullMenu());
+
+            ConsoleKeyInfo userOption = Console.ReadKey();
+
+            return userOption;
+
+        }
+
+        //UPDATE EMPLOYEE NAME
         static string SelectEmployeeId()
         {
-            var Employees = new List<Employee>();
-
             var selectEmployeeMenu = new View();
 
             selectEmployeeMenu.AddMenuText("Enter Employee ID:");
 
             Console.Write(selectEmployeeMenu.GetFullMenu());
             _selectedEmployeeId = Console.ReadLine();
+
             return _selectedEmployeeId;
         }
 
-        static string UpdatedFirstName(string employeeId)
+        static string UpdatedFirstName(int employeeId)
         {
-            var id = int.Parse(employeeId);
             var employeeNameMenu = new View();
+
             var employeeQuery = new EmployeeQuery();
-            var employee = employeeQuery.GetEmployeeById(id);
+            var employee = employeeQuery.GetEmployeeById(employeeId);
+
             employeeNameMenu.AddMenuText($"Employee Current First Name:  {employee.FirstName}");
             employeeNameMenu.AddMenuText("Enter New First Name:");
 
-            //employeeNameMenu.AddMenuText("Press 0 to go BACK.");
-
             Console.Write(employeeNameMenu.GetFullMenu());
+
             _updatedEmployeeFirstName = Console.ReadLine();
 
             return _updatedEmployeeFirstName;
         }
 
-        static string UpdatedLastName(string employeeId)
+        static string UpdatedLastName(int employeeId)
         {
-
             var employeeNameMenu = new View();
-            var id = int.Parse(employeeId);
+
             var employeeQuery = new EmployeeQuery();
-            var employee = employeeQuery.GetEmployeeById(id);
+            var employee = employeeQuery.GetEmployeeById(employeeId);
+
             employeeNameMenu.AddMenuText($"Employee's Current Last Name:  {employee.FirstName}");
             employeeNameMenu.AddMenuText("Enter New Last Name:");
-
-            //employeeNameMenu.AddMenuText("Press 0 to go BACK.");
 
             Console.Write(employeeNameMenu.GetFullMenu());
 
@@ -222,7 +272,6 @@ namespace ChinookConsole
 
         static ConsoleKeyInfo UpdateEmployeeName(int employeeId, string firstName, string lastName)
         {
-            var AllSalesAgents = new List<SalesAgent>();
             var modifyEmployeeQuery = new EmployeeModifier();
             var updateEmployee = modifyEmployeeQuery.UpdateName(employeeId, firstName, lastName);
 
@@ -238,6 +287,7 @@ namespace ChinookConsole
             Console.Write(updatedEmployeeName.GetFullMenu());
 
             ConsoleKeyInfo userOption = Console.ReadKey();
+
             return userOption;
 
         }

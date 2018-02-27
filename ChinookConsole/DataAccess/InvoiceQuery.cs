@@ -93,6 +93,86 @@ namespace ChinookConsole.DataAccess
             }
         }
 
+        public List<Invoice> GetInvoiceByCustomer(int customerId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
 
+                var cmd = connection.CreateCommand();
+
+                cmd.CommandText = @"select InvoiceCustomer.Total, InvoiceCustomer.CustomerName, InvoiceCustomer.CustomerCountry, Agent.SalesAgent, InvoiceCustomer.InvoiceId InvoiceId
+	                                from 
+	                                    (select i.Total Total, c.FirstName + ' ' + c.LastName CustomerName, c.Country CustomerCountry, c.SupportRepId AgentId, i.CustomerId CustomerId, i.InvoiceId InvoiceId
+		                                from Invoice i
+		                                inner join Customer c on i.CustomerId = c.CustomerId) InvoiceCustomer
+	                                join 
+	                                    (select e.FirstName + ' ' + e.LastName SalesAgent, e.EmployeeId EmployeeId
+	                                    from Employee e
+	                                    inner join Customer c on e.EmployeeId = c.SupportRepId) Agent 
+	                                on Agent.EmployeeId = InvoiceCustomer.AgentId
+                                    where InvoiceCustomer.CustomerId = @CustomerId";
+
+                var CustIdParam = new SqlParameter("@CustomerId", System.Data.SqlDbType.Int);
+                CustIdParam.Value = customerId;
+                cmd.Parameters.Add(CustIdParam);
+
+                connection.Open();
+                var reader = cmd.ExecuteReader();
+
+                var invoices = new List<Invoice>();
+
+                while (reader.Read())
+                {
+                    var invoice = new Invoice();
+
+                        invoice.InvoiceId = int.Parse(reader["InvoiceId"].ToString());
+
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("Total")))
+                    {
+                        invoice.Total = double.Parse(reader["Total"].ToString());
+                    }
+                    else
+                    {
+                        invoice.Total = 0.00;
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("CustomerName")))
+                    {
+                        invoice.CustomerName = reader["CustomerName"].ToString();
+                    }
+                    else
+                    {
+                        invoice.CustomerName = "Who Dat";
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("CustomerCountry")))
+                    {
+                        invoice.CustomerCountry = reader["CustomerCountry"].ToString();
+                    }
+                    else
+                    {
+                        invoice.CustomerCountry = "Doofusland";
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("SalesAgent")))
+                    {
+                        invoice.SalesAgent = reader["SalesAgent"].ToString();
+                    }
+                    else
+                    {
+                        invoice.SalesAgent = "Smarmy Bastard";
+                    }
+
+                    invoices.Add(invoice);
+                }
+
+                return invoices;
+
+            }
+        }
+
+
+
+        }
     }
-}

@@ -45,10 +45,12 @@
   <ItemGroup>
     <Compile Include="DataAccess\EmployeeModifier.cs" />
     <Compile Include="DataAccess\EmployeeQuery.cs" />
+    <Compile Include="DataAccess\InvoiceNew.cs" />
     <Compile Include="DataAccess\InvoiceQuery.cs" />
     <Compile Include="DataAccess\Models\Employee.cs" />
     <Compile Include="DataAccess\Models\Invoice.cs" />
     <Compile Include="DataAccess\Models\InvoiceBySalesRep.cs" />
+    <Compile Include="DataAccess\Models\NewInvoice.cs" />
     <Compile Include="DataAccess\Models\SalesAgent.cs" />
     <Compile Include="DataAccess\SalesAgentQuery.cs" />
     <Compile Include="Program.cs" />
