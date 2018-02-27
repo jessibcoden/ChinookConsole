@@ -3,14 +3,13 @@ using ChinookConsole.DataAccess.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChinookConsole
 {
     class Program
     {
         static SalesAgent _selectedAgent;
+        static string _selectedInvoiceId;
         static string _customerId;
         static string _billingAddress;
         static string _selectedEmployeeId;
@@ -45,7 +44,9 @@ namespace ChinookConsole
                                     break;
 
                                 case '3': //Looking at the InvoiceLine table, provide a query that COUNTs the number of line items for an Invoice with a parameterized Id from user input (use ExecuteScalar)
-
+                                _selectedInvoiceId = SelectInvoiceId();
+                                var invId = int.Parse(_selectedInvoiceId);
+                                var countLineItems = CountLineItems(invId);
                                 break;
 
                                 default:
@@ -78,6 +79,7 @@ namespace ChinookConsole
         {
             View mainMenu = new View();
 
+            mainMenu.AddMenuText("");
             mainMenu.AddMenuOption("Search Invoice(s)")
             .AddMenuOption("Create Invoice")
             .AddMenuOption("Update Employee Record")
@@ -88,10 +90,11 @@ namespace ChinookConsole
             return userOption;
         }
 
+ //SEARCH INVOICES
         static ConsoleKeyInfo SelectInvoiceQueryType()
         {
             var invoiceQueryMenu = new View();
-
+            invoiceQueryMenu.AddMenuText("");
             invoiceQueryMenu.AddMenuText("Select how to view invoices:")
                 .AddMenuOption("Search by Sales Agent")
                 .AddMenuOption("Show all invoices")
@@ -110,7 +113,7 @@ namespace ChinookConsole
             var agents = agentQuery.GetAllSalesReps();
 
             var salesAgentMenu = new View();
-
+            salesAgentMenu.AddMenuText("");
             salesAgentMenu.AddMenuText("Select Sales Agent");
                 foreach (var agent in agents)
                 {
@@ -134,7 +137,7 @@ namespace ChinookConsole
             var invoices = invoiceQuery.GetInvoiceBySalesAgent(salesAgent.AgentId);
 
             var invoicesByAgentView = new View();
-
+            invoicesByAgentView.AddMenuText("");
             invoicesByAgentView.AddMenuText("Agent Results:");
             foreach (var invoice in invoices)
             {
@@ -150,13 +153,41 @@ namespace ChinookConsole
 
         }
 
+        static string SelectInvoiceId()
+        {
+            var selectInvoiceIdMenu = new View();
+            selectInvoiceIdMenu.AddMenuText("");
+            selectInvoiceIdMenu.AddMenuText("Enter Invoice ID:");
+
+            Console.Write(selectInvoiceIdMenu.GetFullMenu());
+            _selectedInvoiceId = Console.ReadLine();
+
+            return _selectedInvoiceId;
+        }
+
+        static ConsoleKeyInfo CountLineItems(int invoiceId)
+        {
+            var invoiceQuery = new InvoiceQuery();
+            var lineItemCount = invoiceQuery.GetCountOfLineItems(invoiceId);
+
+            var lineItemCountView = new View();
+            lineItemCountView.AddMenuText("");
+            lineItemCountView.AddMenuText($"Total Line Items for Invoice {invoiceId}: {lineItemCount}");
+            lineItemCountView.AddMenuText("Press 0 to go BACK.");
+
+            Console.Write(lineItemCountView.GetFullMenu());
+
+            ConsoleKeyInfo userOption = Console.ReadKey();
+            return userOption;
+        }
+
         static ConsoleKeyInfo ShowAllInvoices ()
         {
             var invoiceQuery = new InvoiceQuery();
             var invoices = invoiceQuery.GetAllInvoices();
 
             var viewAllInvoices = new View();
-
+            viewAllInvoices.AddMenuText("");
             viewAllInvoices.AddMenuText("Agent Results:");
             foreach (var invoice in invoices)
             {
@@ -175,7 +206,7 @@ namespace ChinookConsole
         static string SelectCustomerId()
         {
             var selectCustomerMenu = new View();
-
+            selectCustomerMenu.AddMenuText("");
             selectCustomerMenu.AddMenuText("Enter Customer ID:");
 
             Console.Write(selectCustomerMenu.GetFullMenu());
@@ -187,7 +218,7 @@ namespace ChinookConsole
         static string GrabBillingAddress()
         {
             var getBillingAddMenu = new View();
-
+            getBillingAddMenu.AddMenuText("");
             getBillingAddMenu.AddMenuText("Enter Billing Address:");
 
             Console.Write(getBillingAddMenu.GetFullMenu());
@@ -207,6 +238,7 @@ namespace ChinookConsole
             var invoices = invoiceQuery.GetInvoiceByCustomer(customerId);
 
             var invoicesByCustView = new View();
+            invoicesByCustView.AddMenuText("");
             invoicesByCustView.AddMenuText($"All invoices for this customer:");
             foreach (var invoice in invoices)
             {
@@ -223,11 +255,11 @@ namespace ChinookConsole
 
         }
 
-        //UPDATE EMPLOYEE NAME
+//UPDATE EMPLOYEE NAME
         static string SelectEmployeeId()
         {
             var selectEmployeeMenu = new View();
-
+            selectEmployeeMenu.AddMenuText("");
             selectEmployeeMenu.AddMenuText("Enter Employee ID:");
 
             Console.Write(selectEmployeeMenu.GetFullMenu());
@@ -239,7 +271,7 @@ namespace ChinookConsole
         static string UpdatedFirstName(int employeeId)
         {
             var employeeNameMenu = new View();
-
+            employeeNameMenu.AddMenuText("");
             var employeeQuery = new EmployeeQuery();
             var employee = employeeQuery.GetEmployeeById(employeeId);
 
@@ -256,7 +288,7 @@ namespace ChinookConsole
         static string UpdatedLastName(int employeeId)
         {
             var employeeNameMenu = new View();
-
+            employeeNameMenu.AddMenuText("");
             var employeeQuery = new EmployeeQuery();
             var employee = employeeQuery.GetEmployeeById(employeeId);
 
@@ -279,7 +311,7 @@ namespace ChinookConsole
             var employee = employeeQuery.GetEmployeeById(employeeId);
 
             var updatedEmployeeName = new View();
-
+            updatedEmployeeName.AddMenuText("");
             updatedEmployeeName.AddMenuText($"Employee name has been updated to: {employee.FirstName} {employee.LastName}");
 
             updatedEmployeeName.AddMenuText("Press 0 to go BACK.");

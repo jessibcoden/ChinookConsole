@@ -1,11 +1,7 @@
 ﻿using ChinookConsole.DataAccess.Models;
-using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChinookConsole.DataAccess
 {
@@ -52,6 +48,30 @@ namespace ChinookConsole.DataAccess
             }
         }
 
+        public int GetCountOfLineItems(int invoiceId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+
+                var cmd = connection.CreateCommand();
+
+                cmd.CommandText = @"select count (il.InvoiceLineId)
+                                    from InvoiceLine il
+                                    inner join Invoice i on il.InvoiceId = i.InvoiceId
+                                    where i.InvoiceId = @InvoiceId";
+
+                var InvoiceIdParam = new SqlParameter("@InvoiceId", System.Data.SqlDbType.Int);
+                InvoiceIdParam.Value = invoiceId;
+                cmd.Parameters.Add(InvoiceIdParam);
+
+                connection.Open();
+                var count = (int.Parse(cmd.ExecuteScalar().ToString()));
+
+                return count;
+
+            }
+        }
+
         public List<Invoice> GetAllInvoices()
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -77,13 +97,43 @@ namespace ChinookConsole.DataAccess
 
                 while (reader.Read())
                 {
-                    var invoice = new Invoice
+                    var invoice = new Invoice();
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("Total")))
                     {
-                        Total = double.Parse(reader["Total"].ToString()),
-                        CustomerName = reader["CustomerName"].ToString(),
-                        CustomerCountry = reader["CustomerCountry"].ToString(),
-                        SalesAgent = reader["SalesAgent"].ToString(),
-                    };
+                        invoice.Total = double.Parse(reader["Total"].ToString());
+                    }
+                    else
+                    {
+                        invoice.Total = 0.00;
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("CustomerName")))
+                    {
+                        invoice.CustomerName = reader["CustomerName"].ToString();
+                    }
+                    else
+                    {
+                        invoice.CustomerName = "Who Dat";
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("CustomerCountry")))
+                    {
+                        invoice.CustomerCountry = reader["CustomerCountry"].ToString();
+                    }
+                    else
+                    {
+                        invoice.CustomerCountry = "Doofusland";
+                    }
+
+                    if (!reader.IsDBNull(reader.GetOrdinal("SalesAgent")))
+                    {
+                        invoice.SalesAgent = reader["SalesAgent"].ToString();
+                    }
+                    else
+                    {
+                        invoice.SalesAgent = "Smarmy Bastard";
+                    }
 
                     allInvoices.Add(invoice);
                 }
@@ -171,8 +221,6 @@ namespace ChinookConsole.DataAccess
 
             }
         }
-
-
 
         }
     }
